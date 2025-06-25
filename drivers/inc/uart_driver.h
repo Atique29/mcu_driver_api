@@ -12,14 +12,14 @@ typedef void (*uart_callback_t) (uart_instance_t instance);
 
 //number of databits in a frame
 typedef enum {
-    UART_WORD_LENGTH_8B,
-    UART_WORD_LENGTH_9B
+    DRV_UART_WORD_LENGTH_8B,
+    DRV_UART_WORD_LENGTH_9B
 } uart_wordlength_t;
 
 //number of stop bits
 typedef enum {
-    UART_STOP_BITS_1B,
-    UART_STOP_BITS_2B
+    DRV_UART_STOP_BITS_1B,
+    DRV_UART_STOP_BITS_2B
 } uart_stopbits_t;
 
 //parity mode
@@ -39,47 +39,21 @@ typedef struct {
 } uart_config_t;
 
 //user api functions
-
+//initiation
 bool uart_init(const uart_config_t* config);
-void uar_deinit(uart_instance_t instance);
+void uart_deinit(uart_instance_t instance);
 
+//transmit-receive in polling mode
+bool uart_transmit_polling(uart_instance_t instance, uint8_t*  data_ptr, uint16_t size, uint32_t timeout_ms);
+bool uart_receive_polling(uart_instance_t instance, uint8_t* data_ptr, uint16_t size, uint32_t timeout_ms);
 
+//transmit-receive in interrupt mode
+bool uart_transmit_it(uart_instance_t instance, const uint8_t*  data_ptr, uint16_t size);
+bool uart_receive_it(uart_instance_t instance, uint8_t* data_ptr, uint16_t size);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//callback functions
+void uart_tx_callback(uart_instance_t instance, uart_callback_t callback);
+void uart_rx_callback(uart_instance_t instance, uart_callback_t callback);
 
 
 #endif // UART_DRIVER_H
