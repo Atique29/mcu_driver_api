@@ -4,8 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-//uart handle 
+//type for uart handle 
 typedef void* uart_handle_t;
+
+//type for hardware peripheral (USART2 etc)
+typedef void* uart_hw_instance_t;
 
 //function pointer type for uart callbacks
 typedef void (*uart_callback_t) (uart_handle_t handle);
@@ -32,6 +35,7 @@ typedef enum {
 //config struct for initialization
 typedef struct {
     uart_handle_t handle;
+    uart_hw_instance_t hw_instance;
     uint32_t baud_rate;
     uart_wordlength_t word_length;
     uart_stopbits_t stop_bits ;

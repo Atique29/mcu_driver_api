@@ -1,14 +1,14 @@
 //backend implementation of gpio driver using the STM32 HAL library
 
-#include "config.h"
+#include "core/inc/config.h"
 #ifdef USE_BACKEND_STM32_HAL
 
-#include "gpio_driver.h"
+#include "drivers/inc/gpio_driver.h"
 #include "stm32f4xx_hal.h"
 
 
 //store registered callback functions addr for each ext int
-static callback_ptr_t callbacks[16] = {NULL};
+static gpio_callback_t callbacks[16] = {NULL};
 
 //enable clock for the port
 //I'm implementing for stm32f446, can be easily extended for others
@@ -133,7 +133,7 @@ gpio_pin_state_t gpio_read(gpio_port_t port, uint8_t pin_number) {
     return pin_state;
 }
 
-void gpio_register_callback(uint8_t pin_number, callback_ptr_t callback_addr) {
+void gpio_register_callback(uint8_t pin_number, gpio_callback_t callback_addr) {
     if (pin_number < 16) {
         //store the function pointer in table at pin index
         callbacks[pin_number] = callback_addr;

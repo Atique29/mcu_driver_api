@@ -1,12 +1,11 @@
 //backend implementation of gpio driver using the STM32 HAL library
 
-#include "config.h"
-#include "stm32f4xx_hal_def.h"
+#include "core/inc/config.h"
 #ifdef USE_BACKEND_STM32_HAL
 
-#include "../../drivers/inc/uart_driver.h"
+#include "drivers/inc/uart_driver.h"
 #include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_uart.h"
+#include "stddef.h"
 
 //HAL only calls HAL_UART_TxCpltCallback for interrupts on any uart
 //need this struct for redirecting HALs callback to right uart
@@ -39,7 +38,7 @@ static uart_internal_handle_t* get_internal_handle(uart_handle_t handle){
 //user api functions 
 bool uart_init(const uart_config_t* config){
     //safety checks
-    if (config == NULL || config->handle == NULL){
+    if (config == NULL){
         return false;
     }
     
@@ -52,6 +51,9 @@ bool uart_init(const uart_config_t* config){
     UART_HandleTypeDef* huart = (UART_HandleTypeDef*) config->handle;
 
     //setup hal config for uart
+    huart->Instance = (USART_TypeDef*) config->hw_instance;
+    
+
     huart->Init.BaudRate = config->baud_rate;
 
     huart->Init.WordLength = (config->word_length == DRV_UART_WORD_LENGTH_8B) ? UART_WORDLENGTH_8B : UART_WORDLENGTH_9B;

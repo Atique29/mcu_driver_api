@@ -1,27 +1,43 @@
+/**
+ * this code - 
+ * 1. Blinks the led on PA5 using gpio_driver
+ * 2. Echoes the sent character back to terminal using uart_driver
+ * 3. "Button Pressed" is sent with uart when button on PC13 fires an interrupt
+ *
+ * other configuration for uart is done in stm32f4xx_hal_msp.c
+ * interrupts are set up in stm32f4xx_it.c
+*/
+
+#include <string.h>
+#include <stdint.h>
 #include "stm32f4xx_hal.h"
 
-//include the custom driver
-#include "gpio_driver.h"
+//include the driver
+#include "drivers/inc/gpio_driver.h"
+#include "drivers/inc/uart_driver.h"
 
+//pin definitions
 #define LED_PORT        GPIOA
 #define LED_PIN         5
 
 #define BUTTON_PORT     GPIOC
 #define BUTTON_PIN      13
 
-//Private function prototypes
-//void SystemClock_Config(void);
-//static void MX_GPIO_Init(void);
+UART_HandleTypeDef huart2;
+uint8_t rx_buffer[1]; //1 byte buffer to receive character
+
+//interrupt callback functions
+void button_press_handler(uint8_t pin_number);
+void uart_rx_handler(uart_handle_t handle);
+
 void SystemClock_Config(void);
- 
-//interrupt callback function
-void button_press_callback(uint8_t pin_number);
 
 int main(void) {
 
     HAL_Init();
     SystemClock_Config();
 
+    //gpio setup
     //configure the LED pin
     gpio_config_t led_config = {
         .port = LED_PORT,
@@ -39,24 +55,47 @@ int main(void) {
         .pull = DRV_GPIO_PULL_NO          //Nucleo board has an internal pull-up
     };
     gpio_init(&button_config);
+    gpio_register_callback(BUTTON_PIN, button_press_handler);
 
-    //register int. callback function
-    gpio_register_callback(BUTTON_PIN, button_press_callback);
+    //uart setup 
+    //using USART2 peripheral
+    huart2.Instance = USART2;
 
+    uart_config_t uart_config = {
+        .handle = &huart2,
+        .hw_instance = USART2,
+        .baud_rate = 115200,
+        .parity_mode = DRV_UART_PARITY_NONE,
+        .word_length = DRV_UART_WORD_LENGTH_8B,
+        .stop_bits = DRV_UART_STOP_BITS_1B,
+    };
+    uart_init(&uart_config);
+    uart_rx_register_callback(&huart2, uart_rx_handler);
+    //start receiving in interrupt mode
+    uart_receive_it(&huart2, rx_buffer, 1);
+
+    //main loop
     while (1) {
-
+        gpio_toggle(LED_PORT, LED_PIN);
+        HAL_Delay(500);
     }
 }
 
-void button_press_callback(uint8_t pin_number) {
-    if (pin_number == BUTTON_PIN) {
 
-        // using driver's API to toggle the led's state
-        gpio_toggle(LED_PORT, LED_PIN);
+void uart_rx_handler(uart_handle_t handle){
+    //echo the char back
+    uart_transmit_it(&huart2, rx_buffer, 1);
+    //restart receiving
+    uart_receive_it(&huart2, rx_buffer, 1);
+}
 
-        //debouncing delay
-        for(volatile int i = 0; i < 200000; i++);
-    }
+
+void button_press_handler(uint8_t pin_number){
+    //debounce delay 
+    for (volatile int i = 0; i < 20000; i++);
+
+    char* text = "Button pressed!\r\n";
+    uart_transmit_polling(&huart2, (uint8_t*)text, strlen(text), 100);
 }
 
 //clock setup from stm32cubeide
@@ -89,10 +128,3 @@ void SystemClock_Config(void)
 
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
 }
-
-// You need to add this function if you don't have it elsewhere
-void SysTick_Handler(void)
-{
-  HAL_IncTick();
-}
-
