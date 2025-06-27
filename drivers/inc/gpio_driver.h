@@ -30,7 +30,7 @@ typedef enum {
 typedef void* gpio_port_t; 
 
 //function pointer type for GPIO interrupt callbacks
-typedef void (*callback_ptr_t)(uint8_t pin_number);
+typedef void (*gpio_callback_t)(uint8_t pin_number);
 
 //config struct for initialization
 typedef struct {
@@ -54,6 +54,6 @@ void gpio_toggle(gpio_port_t port, uint8_t pin_number);
 gpio_pin_state_t gpio_read(gpio_port_t port, uint8_t pin_number);
 
 //user-defined callback function for a specific interrupt pin
-void gpio_register_callback(uint8_t pin_number, callback_ptr_t callback);
+void gpio_register_callback(uint8_t pin_number, gpio_callback_t callback);
 
 #endif // GPIO_DRIVER_H

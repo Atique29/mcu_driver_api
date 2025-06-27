@@ -1,8 +1,8 @@
 //backend implementation of gpio driver using the STM32 HAL library
 
 #include "config.h"
-
 #ifdef USE_BACKEND_STM32_HAL
+
 #include "gpio_driver.h"
 #include "stm32f4xx_hal.h"
 
@@ -34,6 +34,7 @@ static void enable_gpio_clock(gpio_port_t port) {
 
 //api function implementations
 void gpio_init(const gpio_config_t* config){
+
     //safety check
     if (config ==  NULL || config->port == NULL){
         return;
